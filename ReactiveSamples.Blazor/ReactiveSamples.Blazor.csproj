@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<LangVersion>14.0</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Blazicons.Bootstrap" Version="2.3.40" />
+		<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="1.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\ReactiveSamples.Common\ReactiveSamples.Common.csproj" />
+		<ProjectReference Include="..\ReactiveValues.Blazor\ReactiveValues.Blazor.csproj" />
+		<ProjectReference Include="..\ReactiveValues.DataTypes\ReactiveValues.DataTypes.csproj" />
+	</ItemGroup>
+
+</Project>

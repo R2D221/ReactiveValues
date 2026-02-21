@@ -1,0 +1,28 @@
+﻿<Window
+	x:Class="Signals_WpfSample.XamlWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:Signals_WpfSample"
+	xmlns:common="clr-namespace:ReactiveSamples.Common;assembly=ReactiveSamples.Common"
+	xmlns:views="clr-namespace:Signals_WpfSample.Views"
+	mc:Ignorable="d"
+	Title="XamlWindow" Height="450" Width="800"
+	d:DataContext="{d:DesignInstance Type=common:ViewModel}"
+	>
+	<Grid>
+		<TabControl TabStripPlacement="Left">
+			<TabItem Header="Input controls">
+				<views:InputControlsView/>
+			</TabItem>
+			<TabItem Header="Lists">
+				<views:ListsView/>
+			</TabItem>
+			<TabItem Header="Data grid">
+			</TabItem>
+			<TabItem Header="Real time">
+			</TabItem>
+		</TabControl>
+	</Grid>
+</Window>

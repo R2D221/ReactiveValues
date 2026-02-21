@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>net462;net47;net471;net472;net48;net481;netstandard2.0;net8.0</TargetFrameworks>
+		<LangVersion>14.0</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="PolySharp" Version="1.15.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+		<PackageReference Include="System.ValueTuple" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net47'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net471'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net472'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net481'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" Version="*" />
+		<PackageReference Include="System.Collections.Immutable" Version="*" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="*" />
+	</ItemGroup>
+
+</Project>

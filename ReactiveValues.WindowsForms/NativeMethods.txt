@@ -1,0 +1,4 @@
+SendMessage
+WM_SETREDRAW
+TRUE
+FALSE

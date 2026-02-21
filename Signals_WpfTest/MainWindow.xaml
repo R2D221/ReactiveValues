@@ -1,0 +1,28 @@
+﻿<Window
+	x:Class="Signals_WpfTest.MainWindow"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:local="clr-namespace:Signals_WpfTest"
+	xmlns:bind="clr-namespace:Signals_WpfTest.Bindings.MainWindowViewModel"
+	mc:Ignorable="d"
+	Title="MainWindow" Height="450" Width="800">
+	<Grid>
+		<Grid.DataContext>
+			<local:MainWindowViewModel/>
+		</Grid.DataContext>
+
+		<StackPanel>
+			<StackPanel Orientation="Horizontal">
+				<Label Content="Given name"/>
+				<TextBox Text="{bind:GivenName_Input}" Width="200" VerticalAlignment="Center"/>
+			</StackPanel>
+			<StackPanel Orientation="Horizontal">
+				<Label Content="Family name"/>
+				<TextBox Text="{bind:FamilyName_Input}" Width="200" VerticalAlignment="Center"/>
+			</StackPanel>
+			<TextBlock Text="{bind:Greeting}"/>
+		</StackPanel>
+	</Grid>
+</Window>

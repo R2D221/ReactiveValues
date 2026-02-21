@@ -1,0 +1,30 @@
+<Solution>
+  <Folder Name="/Blazor/">
+    <Project Path="ReactiveValues.Blazor/ReactiveValues.Blazor.csproj" />
+  </Folder>
+  <Folder Name="/Common/">
+    <Project Path="ReactiveValues.DataTypes/ReactiveValues.DataTypes.csproj" />
+    <Project Path="ReactiveValues.Markup/ReactiveValues.Markup.csproj" />
+    <Project Path="ReactiveValues.Tests/ReactiveValues.Tests.csproj" />
+    <Project Path="ReactiveValues/ReactiveValues.csproj" />
+  </Folder>
+  <Folder Name="/Samples/">
+    <Project Path="ReactiveSamples.Blazor/ReactiveSamples.Blazor.csproj" />
+    <Project Path="ReactiveSamples.Common/ReactiveSamples.Common.csproj" />
+    <Project Path="ReactiveSamples.WindowsForms/ReactiveSamples.WindowsForms.csproj" />
+    <Project Path="ReactiveSamples.WPF/ReactiveSamples.WPF.csproj" />
+  </Folder>
+  <Folder Name="/WindowsForms/">
+    <Project Path="ReactiveValues.Markup.WindowsForms/ReactiveValues.Markup.WindowsForms.csproj" />
+    <Project Path="ReactiveValues.WindowsForms/ReactiveValues.WindowsForms.csproj" />
+  </Folder>
+  <Folder Name="/WPF/">
+    <Project Path="ReactiveValues.Markup.Wpf/ReactiveValues.Markup.Wpf.csproj" />
+    <Project Path="ReactiveValues.Wpf/ReactiveValues.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/_Signals_/">
+    <Project Path="Signals_WinFormsSample/Signals_WinFormsSample.csproj" />
+    <Project Path="Signals_WpfSample/Signals_WpfSample.csproj" />
+    <Project Path="Signals_WpfTest/Signals_WpfTest.csproj" />
+  </Folder>
+</Solution>

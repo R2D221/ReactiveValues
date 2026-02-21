@@ -1,0 +1,30 @@
+﻿@inherits ReactiveValues.Blazor.ReactiveComponentBase
+@page "/counter"
+@using ReactiveSamples.Blazor.ViewModels
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Global count: @viewModel.Global.CurrentCount</p>
+
+<button class="btn btn-primary" @onclick="GlobalIncrementCount">Click me</button>
+
+<p role="status">Local count: @viewModel.Local.CurrentCount</p>
+
+<button class="btn btn-primary" @onclick="LocalIncrementCount">Click me</button>
+
+@code {
+	private readonly CounterViewModel viewModel = new();
+
+	private void GlobalIncrementCount()
+	{
+		viewModel.Global.CurrentCount++;
+	}
+
+	private void LocalIncrementCount()
+	{
+		viewModel.Local.CurrentCount++;
+	}
+}
