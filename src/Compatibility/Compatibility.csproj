@@ -8,7 +8,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Include="Compatibility\**\*.cs" />
+		<Compile Include="Compatibility\**\*.cs" />
 	</ItemGroup>
 
 </Project>
