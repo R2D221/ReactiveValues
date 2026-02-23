@@ -220,8 +220,8 @@ internal sealed class SequenceEqualAssertion<T>(IEnumerable<T> value, string exp
 			throw new AssertFailedException(
 				$"""
 				Assertion error in '{expression}'.
-				- Expected: [{string.Join(',', expected)}]
-				- Actual:   [{string.Join(',', value)}]
+				- Expected: [{string.Join(",", expected)}]
+				- Actual:   [{string.Join(",", value)}]
 				""");
 		}
 	}

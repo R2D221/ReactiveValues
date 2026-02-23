@@ -1,8 +1,7 @@
 ﻿#if !NETCOREAPP
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 
-internal static class CompatibilityExtensions
+internal static partial class CompatibilityExtensions
 {
 	#region ConcurrentDictionary<TKey, TValue>
 	extension<TKey, TValue>(ConcurrentDictionary<TKey, TValue> @this)
@@ -24,26 +23,6 @@ internal static class CompatibilityExtensions
 			return @this.GetOrAdd(key, k => valueFactory(k, factoryArgument));
 		}
 	}
-	#endregion
-
-	#region Dictionary<TKey, TValue>
-	extension<TKey, TValue>(Dictionary<TKey, TValue> @this)
-	{
-		public bool Remove(
-			TKey key,
-			[MaybeNullWhen(false)] out TValue value)
-		{
-			if (@this.TryGetValue(key, out value))
-			{
-				@this.Remove(key);
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-	} 
 	#endregion
 }
 #endif

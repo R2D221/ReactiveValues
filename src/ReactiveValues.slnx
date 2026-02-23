@@ -8,6 +8,9 @@
     <Project Path="ReactiveValues.Tests/ReactiveValues.Tests.csproj" />
     <Project Path="ReactiveValues/ReactiveValues.csproj" />
   </Folder>
+  <Folder Name="/Internal/">
+    <Project Path="Compatibility/Compatibility.csproj" Id="34b930c2-ef87-43df-9ab6-b2b95d82916d" />
+  </Folder>
   <Folder Name="/Samples/">
     <Project Path="ReactiveSamples.Blazor/ReactiveSamples.Blazor.csproj" />
     <Project Path="ReactiveSamples.Common/ReactiveSamples.Common.csproj" />
