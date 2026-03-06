@@ -1,4 +1,6 @@
-﻿namespace ReactiveValues;
+﻿using ReactiveValues.Helpers;
+
+namespace ReactiveValues;
 
 partial class Reactive
 {
@@ -8,17 +10,15 @@ partial class Reactive
 		Action<TEventHandler> addHandler,
 		Action<TEventHandler> removeHandler) where TEventHandler : Delegate
 	{
-		var state = new ReactiveValue<ValueTuple>(default, equality: AlwaysFalseEqualityComparer<ValueTuple>.Instance);
+		var invalidator = new Invalidator();
 
 		var computed = new ReactiveFunc<T>(() =>
 		{
-			_ = state.Value;
+			invalidator.Register();
 			return valueFunc();
 		});
 
-		var notifier = new Invalidator(state);
-
-		var handler = create(notifier);
+		var handler = create(invalidator);
 
 		computed.Watched += (_, _) => addHandler(handler);
 		computed.Unwatched += (_, _) => removeHandler(handler);
@@ -44,170 +44,75 @@ partial class Reactive
 
 	public static ReactiveFunc<T> Volatile<T>(Func<T> valueFunc)
 	{
-		var invalidator = new ReactiveValue<ValueTuple>(default, equality: AlwaysFalseEqualityComparer<ValueTuple>.Instance);
+		var invalidator = new Invalidator();
 
 		return new ReactiveFunc<T>(() =>
 		{
-			_ = invalidator.Value;
-			_ = Task.Run(() => invalidator.Value = default);
+			invalidator.Register();
+			_ = Task.Run(() => invalidator.Invalidate());
 
 			return valueFunc();
 		});
 	}
 
-	//private static bool first = true;
-
-	//	if (first)
-	//	{
-	//		first = false;
-	//		return new ReactiveFunc<T>(() => default!);
-	//	}
-	//	else
-	//	{
-	//	}
-
-
-
-
-
-
-
-
-	public static ReactiveFunc<T> Throttle2<T>(ReactiveFunc<T> reactive, TimeSpan interval)
+	public static ReactiveFunc<T> Throttle<T>(ReactiveFunc<T> reactive, TimeSpan interval)
 	{
-		PeriodicTimer? timer = null;
-		var invalidator = new ReactiveValue<long>(0);
+		T value = default!;
+		var invalidator = new Invalidator();
 
-		//var xxx = new Effect(() =>
-		//{
-		//	version.Value++;
-		//	_ = reactive.Value;
-		//});
+		var effect = new Effect(() =>
+		{
+			value = reactive.Value;
+			invalidator.Invalidate();
+		});
+
+		var watcher = new ThrottleWatcher(interval);
+		watcher.Watch(effect);
 
 		var result = new ReactiveFunc<T>(() =>
 		{
-			_ = invalidator.Value;
-
-			NextTick();
-
-			using (Reactive.Untrack())
-			{
-				return reactive.Value;
-			}
+			invalidator.Register();
+			return value;
 		});
-
-		void NextTick()
-		{
-			_ = Task.Run(async () =>
-			{
-				timer ??= new(interval);
-
-				if (await timer.WaitForNextTickAsync())
-				{
-					invalidator.Value++;
-				}
-			});
-		}
 
 		return result;
 	}
 
-
-
-
-
-
-
-
-
-
-
-	public static ReactiveFunc<T> Throttle<T>(Func<T> valueFunc, TimeSpan interval)
+	private sealed class ThrottleWatcher : Watcher
 	{
-		Task<bool> throttledTask = Task.FromResult(true);
+		private readonly AsyncSignal signal = new();
 
-		var wrapper = new ReactiveValue<T>(default!);
-
-		var timer = new PeriodicTimer(Timeout.InfiniteTimeSpan);
-
-		var version = new ReactiveValue<long>(0);
-		var effect = new Effect(() =>
-		{
-			version.Value++;
-			wrapper.Value = valueFunc();
-		});
-
-		LambdaWatcher watcher = default!;
-		watcher = new LambdaWatcher(() =>
+		public ThrottleWatcher(TimeSpan interval)
 		{
 			_ = Task.Run(async () =>
 			{
-				if (await throttledTask is false)
+				while (true)
 				{
-					_ = watcher.RunPending();
+					await signal;
+
+					using var timer = new PeriodicTimer(interval);
+					while (await timer.WaitForNextTickAsync())
+					{
+						using var pendingEnumerator = GetPending().GetEnumerator();
+
+						if (pendingEnumerator.MoveNext() is false)
+						{
+							break;
+						}
+
+						do
+						{
+							pendingEnumerator.Current.Run();
+						}
+						while (pendingEnumerator.MoveNext());
+					}
 				}
 			});
-		});
-
-		watcher.Watch(effect);
-
-		return new ReactiveFunc<T>(() =>
-		{
-			timer.Period = interval;
-			throttledTask = Task.Run(async () =>
-			{
-				if (await timer.WaitForNextTickAsync() is false)
-				{
-					return false;
-				}
-
-				var didRun = watcher.RunPending();
-
-				if (didRun is false)
-				{
-					timer.Period = Timeout.InfiniteTimeSpan;
-				}
-
-				return didRun;
-			});
-			_ = version.Value;
-			return wrapper.Value;
-		});
-	}
-
-	private class LambdaWatcher(Action action) : Watcher
-	{
-		protected internal override void OnNotified() => action();
-
-		public bool RunPending()
-		{
-			var result = false;
-
-			foreach (var effect in GetPending())
-			{
-				result = true;
-				effect.Run();
-			}
-
-			return result;
 		}
+
+		protected internal override void OnNotified() => signal.Signal();
 	}
 
 	public static Effect EventEffect(Reactive reactive, Action raiseEvent) =>
 		reactive.EventEffect(raiseEvent);
-}
-
-public sealed class Invalidator
-{
-	private readonly ReactiveValue<ValueTuple> state;
-
-	internal Invalidator(ReactiveValue<ValueTuple> state)
-	{
-		this.state = state;
-	}
-
-	public void Invalidate()
-	{
-		state.Value = default;
-	}
 }
