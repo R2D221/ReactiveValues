@@ -1,11 +1,35 @@
 ﻿@inherits ReactiveValues.Blazor.ReactiveComponentBase
 @page "/real-time"
+@using ReactiveSamples.Common
 @rendermode InteractiveServer
 
 <PageTitle>Real time</PageTitle>
 
 <h1>Real time</h1>
 
-@code {
+<label>
+	Interval (milliseconds):
+	<InputNumber @bind-Value="viewModel.IntervalMs" />
+</label>
+<br/>
+<label>
+	What to show:
+	<InputRadioGroup @bind-Value="viewModel.WhatToShow">
+		<InputRadio Value="RealTimeViewModel.Selection.DateTime" /> Date & time
+		<InputRadio Value="RealTimeViewModel.Selection.Fps" /> FPS
+	</InputRadioGroup>
+</label>
+<br/>
+@if (viewModel.WhatToShow == RealTimeViewModel.Selection.DateTime)
+{
+	@:Date & time: @($"{viewModel.DateTimeNow:O}")
+}
+@if (viewModel.WhatToShow == RealTimeViewModel.Selection.Fps)
+{
+	@:FPS: @viewModel.FPS.Value
+}
 
+
+@code {
+	private readonly RealTimeViewModel viewModel = new();
 }

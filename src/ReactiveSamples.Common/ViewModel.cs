@@ -31,10 +31,4 @@ public sealed class ViewModel : ReactiveObject
 		get => Get(() => Items, () => ["A", "B", "C", "D"]);
 		set => Set(() => Items, value);
 	}
-
-	public FPS Fps => Get(() => Fps, () => new(10));
-
-	//private readonly ReactiveFunc<int> fps = Reactive.Volatile(() => Common.FPS.Calculate());
-
-	//public int FPS => Computed(() => fps.Value);
 }

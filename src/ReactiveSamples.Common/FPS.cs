@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace ReactiveSamples.Common;
 
-public sealed class FPS(double refreshRateHz) : ReactiveObject
+public sealed class FPS(TimeSpan interval) : ReactiveObject
 {
 	private readonly Queue<long> queue = new Queue<long>();
 	private readonly Stopwatch sw = Stopwatch.StartNew();
@@ -20,9 +20,7 @@ public sealed class FPS(double refreshRateHz) : ReactiveObject
 		return queue.Count;
 	}
 
-	private ReactiveFunc<int> Volatile => field ??= Reactive.Volatile(() => Calculate());
-	
-	private ReactiveFunc<int> Throttled => field ??= Reactive.Throttle(() => Volatile.Value, TimeSpan.FromSeconds(1/refreshRateHz));
+	private ReactiveFunc<int> Throttled => field ??= Reactive.Throttle(Reactive.Volatile(Calculate), interval);
 
 	public int Value => Computed(() => Value, () => Throttled.Value);
 }
