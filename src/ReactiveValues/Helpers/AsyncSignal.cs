@@ -7,6 +7,8 @@ internal sealed class AsyncSignal
 	private Action? continuation;
 	private bool signaled;
 
+	public bool IsSignaled => signaled;
+
 	public void Signal()
 	{
 		signaled = true;
@@ -14,6 +16,12 @@ internal sealed class AsyncSignal
 		{
 			Task.Run(continuation);
 		}
+	}
+
+	public void Reset()
+	{
+		signaled = false;
+		continuation = null;
 	}
 
 	public Awaiter GetAwaiter() => new(this);
@@ -29,8 +37,6 @@ internal sealed class AsyncSignal
 
 		public void GetResult()
 		{
-			@this.signaled = false;
-			@this.continuation = null;
 		}
 	}
 }

@@ -60,13 +60,9 @@ partial class Reactive
 		T value = default!;
 		var invalidator = new Invalidator();
 
-		var effect = new Effect(() =>
-		{
-			value = reactive.Value;
-			invalidator.Invalidate();
-		});
+		var effect = new Effect(() => value = reactive.Value);
 
-		var watcher = new ThrottleWatcher(interval);
+		var watcher = new ThrottleWatcher(interval, invalidator);
 		watcher.Watch(effect);
 
 		var result = new ReactiveFunc<T>(() =>
@@ -79,102 +75,69 @@ partial class Reactive
 		return result;
 	}
 
-	private class AsyncBool
-	{
-		private TaskCompletionSource<ValueTuple> waitUntilTrue = new();
-		private TaskCompletionSource<ValueTuple> waitUntilFalse = new();
-
-		public bool Value
-		{
-			get => field;
-			set
-			{
-				field = value;
-
-				if (value)
-				{
-					var task = waitUntilTrue;
-					waitUntilTrue = new();
-					task.SetResult(default);
-				}
-				else
-				{
-					var task = waitUntilFalse;
-					waitUntilFalse = new();
-					task.SetResult(default);
-				}
-			}
-		}
-
-		public Task WaitUntil(bool value) => value switch
-		{
-			true => waitUntilTrue.Task,
-			false => waitUntilFalse.Task,
-		};
-	}
-
 	private sealed class ThrottleWatcher : Watcher
 	{
-		//private readonly AsyncSignal activateSignal = new();
-		//private readonly AsyncSignal notifiedSignal = new();
-		private readonly AsyncBool stillCare = new();
-		private readonly AsyncBool stillMakingNoise = new();
+		private readonly AsyncSignal activateSignal = new();
+		private readonly AsyncSignal notifiedSignal = new();
+
 		private readonly TimeSpan interval;
+		private readonly Invalidator invalidator;
 		private readonly PeriodicTimer timer;
 
-		public ThrottleWatcher(TimeSpan interval)
+		public ThrottleWatcher(TimeSpan interval, Invalidator invalidator)
 		{
 			this.interval = interval;
+			this.invalidator = invalidator;
 			timer = new PeriodicTimer(Timeout.InfiniteTimeSpan);
 
 			_ = Task.Run(Run);
 		}
 
-		public void Activate() => stillCare.Value = true;
+		public void Activate() => activateSignal.Signal();
 
-		protected internal override void OnNotified() => stillMakingNoise.Value = true;
+		protected internal override void OnNotified() => notifiedSignal.Signal();
+
+		private void RunPending()
+		{
+			foreach (var pending in GetPending())
+			{
+				pending.Run();
+			}
+
+			invalidator.Invalidate();
+		}
 
 		private async Task Run()
 		{
+			await activateSignal;
+			await notifiedSignal;
+
 			while (true)
 			{
-				await stillCare.WaitUntil(true);
-				//await stillMakingNoise.WaitUntil(true);
-
 				timer.Period = interval;
 
 				while (true)
 				{
 					await timer.WaitForNextTickAsync();
 
-					if (stillCare.Value is false)
+					var activateIsSignaled = activateSignal.IsSignaled;
+					activateSignal.Reset();
+
+					var notifiedIsSignaled = notifiedSignal.IsSignaled;
+					notifiedSignal.Reset();
+
+					RunPending();
+
+					if (activateIsSignaled is false)
 					{
+						await activateSignal;
 						break;
 					}
-					stillCare.Value = false;
 
-					//if (stillMakingNoise.Value is false)
-					//{
-					//	break;
-					//}
-					//stillMakingNoise.Value = false;
-
-					////{ using var pendingEnumerator = GetPending().GetEnumerator();
-
-					////if (pendingEnumerator.MoveNext() is false)
-					////{
-					////	//break;
-					////}
-
-					////do
-					////{
-					////	pendingEnumerator.Current.Run();
-					////}
-					////while (pendingEnumerator.MoveNext());}
-					//
-					foreach (var pending in GetPending())
+					if (notifiedIsSignaled is false)
 					{
-						pending.Run();
+						await notifiedSignal;
+						break;
 					}
 				}
 			}
