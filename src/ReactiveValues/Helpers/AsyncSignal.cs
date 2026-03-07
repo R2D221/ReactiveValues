@@ -9,13 +9,10 @@ internal sealed class AsyncSignal
 
 	public void Signal()
 	{
+		signaled = true;
 		if (continuation is not null)
 		{
 			Task.Run(continuation);
-		}
-		else
-		{
-			signaled = true;
 		}
 	}
 

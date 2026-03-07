@@ -7,7 +7,7 @@ public sealed partial class RealTimeViewModel : ReactiveObject
 {
 	public int IntervalMs
 	{
-		get => Get(() => IntervalMs, initialValue: () => 200);
+		get => Get(() => IntervalMs, initialValue: () => 100);
 		set => Set(() => IntervalMs, value);
 	}
 

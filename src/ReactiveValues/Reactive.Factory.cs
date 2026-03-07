@@ -71,6 +71,7 @@ partial class Reactive
 
 		var result = new ReactiveFunc<T>(() =>
 		{
+			watcher.Activate();
 			invalidator.Register();
 			return value;
 		});
@@ -78,39 +79,182 @@ partial class Reactive
 		return result;
 	}
 
+	private class AsyncBool
+	{
+		private TaskCompletionSource<ValueTuple> waitUntilTrue = new();
+		private TaskCompletionSource<ValueTuple> waitUntilFalse = new();
+
+		public bool Value
+		{
+			get => field;
+			set
+			{
+				field = value;
+
+				if (value)
+				{
+					var task = waitUntilTrue;
+					waitUntilTrue = new();
+					task.SetResult(default);
+				}
+				else
+				{
+					var task = waitUntilFalse;
+					waitUntilFalse = new();
+					task.SetResult(default);
+				}
+			}
+		}
+
+		public Task WaitUntil(bool value) => value switch
+		{
+			true => waitUntilTrue.Task,
+			false => waitUntilFalse.Task,
+		};
+	}
+
 	private sealed class ThrottleWatcher : Watcher
 	{
-		private readonly AsyncSignal signal = new();
+		//private readonly AsyncSignal activateSignal = new();
+		//private readonly AsyncSignal notifiedSignal = new();
+		private readonly AsyncBool stillCare = new();
+		private readonly AsyncBool stillMakingNoise = new();
+		private readonly TimeSpan interval;
+		private readonly PeriodicTimer timer;
 
 		public ThrottleWatcher(TimeSpan interval)
 		{
-			_ = Task.Run(async () =>
-			{
-				while (true)
-				{
-					await signal;
+			this.interval = interval;
+			timer = new PeriodicTimer(Timeout.InfiniteTimeSpan);
 
-					using var timer = new PeriodicTimer(interval);
-					while (await timer.WaitForNextTickAsync())
-					{
-						using var pendingEnumerator = GetPending().GetEnumerator();
-
-						if (pendingEnumerator.MoveNext() is false)
-						{
-							break;
-						}
-
-						do
-						{
-							pendingEnumerator.Current.Run();
-						}
-						while (pendingEnumerator.MoveNext());
-					}
-				}
-			});
+			_ = Task.Run(Run);
 		}
 
-		protected internal override void OnNotified() => signal.Signal();
+		public void Activate() => stillCare.Value = true;
+
+		protected internal override void OnNotified() => stillMakingNoise.Value = true;
+
+		private async Task Run()
+		{
+			while (true)
+			{
+				await stillCare.WaitUntil(true);
+				//await stillMakingNoise.WaitUntil(true);
+
+				timer.Period = interval;
+
+				while (true)
+				{
+					await timer.WaitForNextTickAsync();
+
+					if (stillCare.Value is false)
+					{
+						break;
+					}
+					stillCare.Value = false;
+
+					//if (stillMakingNoise.Value is false)
+					//{
+					//	break;
+					//}
+					//stillMakingNoise.Value = false;
+
+					////{ using var pendingEnumerator = GetPending().GetEnumerator();
+
+					////if (pendingEnumerator.MoveNext() is false)
+					////{
+					////	//break;
+					////}
+
+					////do
+					////{
+					////	pendingEnumerator.Current.Run();
+					////}
+					////while (pendingEnumerator.MoveNext());}
+					//
+					foreach (var pending in GetPending())
+					{
+						pending.Run();
+					}
+				}
+			}
+		}
+	}
+
+	public static ReactiveFunc<T> Debounce<T>(ReactiveFunc<T> reactive, TimeSpan interval)
+	{
+		T value = default!;
+		var invalidator = new Invalidator();
+
+		var effect = new Effect(() =>
+		{
+			value = reactive.Value;
+			invalidator.Invalidate();
+		});
+
+		var watcher = new DebounceWatcher(interval);
+		watcher.Watch(effect);
+
+		var result = new ReactiveFunc<T>(() =>
+		{
+			watcher.Activate();
+			invalidator.Register();
+			return value;
+		});
+
+		return result;
+	}
+
+	private sealed class DebounceWatcher : Watcher
+	{
+		private readonly AsyncSignal activateSignal = new();
+		private readonly AsyncSignal notifiedSignal = new();
+		private readonly TimeSpan interval;
+		private readonly PeriodicTimer timer;
+
+		public DebounceWatcher(TimeSpan interval)
+		{
+			this.interval = interval;
+			timer = new PeriodicTimer(Timeout.InfiniteTimeSpan);
+
+			_ = Task.Run(Run);
+		}
+
+		public void Activate() => activateSignal.Signal();
+
+		protected internal override void OnNotified()
+		{
+			timer.Period = interval;
+			notifiedSignal.Signal();
+		}
+
+		private async Task Run()
+		{
+			while (true)
+			{
+				throw new NotImplementedException();
+				await activateSignal;
+				await notifiedSignal;
+
+				//while (true)
+				//{
+				await timer.WaitForNextTickAsync();
+
+				using var pendingEnumerator = GetPending().GetEnumerator();
+
+				if (pendingEnumerator.MoveNext() is false)
+				{
+					//		break;
+				}
+
+				do
+				{
+					pendingEnumerator.Current.Run();
+				}
+				while (pendingEnumerator.MoveNext());
+				//}
+			}
+		}
 	}
 
 	public static Effect EventEffect(Reactive reactive, Action raiseEvent) =>
