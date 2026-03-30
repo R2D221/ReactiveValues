@@ -8,12 +8,11 @@ using TypeNameFormatter;
 
 namespace ReactiveValues.DataTypes;
 
-public abstract class ReactiveObject : INotifyPropertyChanged
+public abstract partial class ReactiveObject
 {
 	private readonly ConcurrentDictionary<string, Reactive> properties = new();
-
-	private readonly ConcurrentDictionary<PropertyChangedEventHandler, (Watcher watcher, ConcurrentDictionary<string, Effect> effects)>
-		propertyChanged = new();
+	private readonly ConditionalWeakTable<Delegate, Reactive> debounces = new();
+	private readonly ConditionalWeakTable<Delegate, Reactive> throttles = new();
 
 	private static TReactive Cast<TReactive, T>(Reactive reactive, string name)
 		where TReactive : Reactive<T>
@@ -34,10 +33,11 @@ public abstract class ReactiveObject : INotifyPropertyChanged
 		return value;
 	}
 
-	protected void Set<T>(Expression<Func<T>> expr, T value, [CallerMemberName] string? name = null)
+	protected void Set<T>(Func<T> expr, T value, [CallerMemberName] string? name = null, [CallerArgumentExpression(nameof(expr))] string? exprString = null)
 	{
 		ArgumentNullException.ThrowIfNull(name);
-		Validate(expr, name);
+		ArgumentNullException.ThrowIfNull(exprString);
+		Validate(name, exprString);
 
 		_ = properties.AddOrUpdate(
 			name,
@@ -59,10 +59,11 @@ public abstract class ReactiveObject : INotifyPropertyChanged
 		return value.Value;
 	}
 
-	protected T GetRequired<T>(Expression<Func<T>> expr, [CallerMemberName] string? name = null)
+	protected T GetRequired<T>(Func<T> expr, [CallerMemberName] string? name = null, [CallerArgumentExpression(nameof(expr))] string? exprString = null)
 	{
 		ArgumentNullException.ThrowIfNull(name);
-		Validate(expr, name);
+		ArgumentNullException.ThrowIfNull(exprString);
+		Validate(name, exprString);
 
 		if (properties.TryGetValue(name, out var reactive) is false)
 		{
@@ -73,52 +74,65 @@ public abstract class ReactiveObject : INotifyPropertyChanged
 	}
 
 	[Conditional("DEBUG")]
-	private void Validate(LambdaExpression expr, string name)
+	private void Validate(string name, string exprString)
 	{
-		_ =
-			expr.Body is MemberExpression
-			{
-				Member.Name: var memberName,
-				Expression: ConstantExpression { Value: var value }
-			}
-			&&
-			memberName == name
-			&&
-			value == this
-			?
-				true
-			:
-				throw new Exception();
+		if ($"() => {name}" != exprString)
+		{
+			throw new Exception();
+		}
 	}
 
-	protected T? Get<T>(Expression<Func<T>> expr, [CallerMemberName] string? name = null)
+	protected T? Get<T>(Func<T> expr, [CallerMemberName] string? name = null, [CallerArgumentExpression(nameof(expr))] string? exprString = null)
 	{
 		ArgumentNullException.ThrowIfNull(name);
-		Validate(expr, name);
+		ArgumentNullException.ThrowIfNull(exprString);
+		Validate(name, exprString);
 
 		var reactive = properties.GetOrAdd(name, (_) => new ReactiveValue<T?>(default));
 
 		return Get<ReactiveValue<T>, T>(reactive, name);
 	}
 
-	protected T Get<T>(Expression<Func<T>> expr, Func<T> initialValue, [CallerMemberName] string? name = null)
+	protected T Get<T>(Func<T> expr, Func<T> initialValue, [CallerMemberName] string? name = null, [CallerArgumentExpression(nameof(expr))] string? exprString = null)
 	{
 		ArgumentNullException.ThrowIfNull(name);
-		Validate(expr, name);
+		ArgumentNullException.ThrowIfNull(exprString);
+		Validate(name, exprString);
 
 		var reactive = properties.GetOrAdd(name, (_, initialValue) => new ReactiveValue<T>(initialValue()), initialValue);
 
 		return Get<ReactiveValue<T>, T>(reactive, name);
 	}
 
-	protected T Computed<T>(Expression<Func<T>> expr, Func<T> valueFunc, [CallerMemberName] string? name = null)
+	protected T Computed<T>(Func<T> expr, Func<T> valueFunc, [CallerMemberName] string? name = null, [CallerArgumentExpression(nameof(expr))] string? exprString = null)
 	{
 		ArgumentNullException.ThrowIfNull(name);
-		Validate(expr, name);
+		ArgumentNullException.ThrowIfNull(exprString);
+		Validate(name, exprString);
 
 		var reactive = properties.GetOrAdd(name, (_, valueFunc) => new ReactiveFunc<T>(valueFunc), valueFunc);
 
 		return Get<ReactiveFunc<T>, T>(reactive, name);
+	}
+
+	protected T Debounce<T>(Func<T> expr, TimeSpan interval)
+	{
+		var result =
+			(ReactiveFunc<T>)debounces.GetValue(
+				expr,
+				expr => Reactive.Debounce(new ReactiveFunc<T>((Func<T>)expr), interval));
+
+		return result.Value;
+	}
+
+	protected T Throttle<T>(Func<T> expr, TimeSpan interval)
+	{
+		var result =
+			(ReactiveFunc<T>)throttles.GetValue(
+				expr,
+				expr => Reactive.Throttle(new ReactiveFunc<T>((Func<T>)expr), interval));
+
+		return result.Value;
 	}
 
 	protected static ICommand Command(
@@ -126,74 +140,5 @@ public abstract class ReactiveObject : INotifyPropertyChanged
 		Action<object?> execute)
 	{
 		return new Command(canExecute, execute);
-	}
-
-	private void HookPropertyChanged(string name, Reactive reactive)
-	{
-		foreach (var entry in propertyChanged)
-		{
-			var @event = entry.Key;
-			var watcher = entry.Value.watcher;
-			var effects = entry.Value.effects;
-
-			CreateEffect(watcher, @event, name, effects, reactive);
-		}
-	}
-
-	private void CreateEffect(Watcher watcher, PropertyChangedEventHandler @event, string name, ConcurrentDictionary<string, Effect> effects, Reactive reactive)
-	{
-		_ = effects.GetOrAdd(
-			name,
-			name =>
-			{
-				var args = new PropertyChangedEventArgs(name);
-
-				var effect = Reactive.EventEffect(reactive, () => @event(this, args));
-
-				watcher.Watch(effect);
-
-				return effect;
-			}
-			);
-	}
-
-	event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged
-	{
-		add
-		{
-			if (value is null) { return; }
-
-			_ = propertyChanged.AddOrUpdate(
-				value,
-				value =>
-				{
-					var watcher = EventHandlerWatcher.Current;
-					var effects = new ConcurrentDictionary<string, Effect>();
-
-					foreach (var property in properties)
-					{
-						CreateEffect(watcher, value, property.Key, effects, property.Value);
-					}
-
-					return (watcher, effects);
-				},
-				(value, _) => throw new InvalidOperationException()
-				);
-		}
-
-		remove
-		{
-			if (value is null) { return; }
-
-			if (propertyChanged.TryRemove(value, out var result) is false)
-			{
-				throw new InvalidOperationException();
-			}
-
-			foreach (var effect in result.effects.Values)
-			{
-				result.watcher.Unwatch(effect);
-			}
-		}
 	}
 }
