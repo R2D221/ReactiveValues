@@ -1,0 +1,37 @@
+﻿@inherits ReactiveValues.Blazor.ReactiveComponentBase
+@page "/debounce-throttle"
+@using ReactiveSamples.Common
+@rendermode InteractiveServer
+
+<PageTitle>Debounce / Throttle</PageTitle>
+
+<h1>Debounce / Throttle</h1>
+
+<label>
+	Interval (milliseconds):
+	<InputNumber @bind-Value="viewModel.IntervalMs" />
+</label>
+<br />
+<label>
+	Input:
+	<input type="text" @bind="viewModel.Input" @bind:event="oninput"/>
+</label>
+<br />
+<label>
+	Immediate:
+	@viewModel.Input
+</label>
+<br />
+@* <label>
+	Debounce:
+	@viewModel.DebouncedInput
+</label> *@
+<br />
+<label>
+	Throttle:
+	@viewModel.ThrottledInput
+</label>
+
+@code {
+	private readonly DebounceThrottleViewModel viewModel = new();
+}
