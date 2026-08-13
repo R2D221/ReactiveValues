@@ -1,88 +1,62 @@
-﻿using System.Diagnostics;
-
-file static class Helpers
+﻿internal static class ReaderWriterLockSlimExtensions
 {
-	public static bool Debug(Exception ex)
-	{
-		if (Debugger.IsAttached)
-		{
-			Debugger.Break();
-		}
+	public static LockScope ReadLockScope(
+		this ReaderWriterLockSlim @lock,
+		Func<Exception>? exceptionFactory = null)
+		=>
+		new(
+			@lock.EnterReadLock,
+			@lock.ExitReadLock,
+			exceptionFactory);
 
-		return false;
-	}
+	public static LockScope WriteLockScope(
+		this ReaderWriterLockSlim @lock,
+		Func<Exception>? exceptionFactory = null)
+		=>
+		new(
+			@lock.EnterWriteLock,
+			@lock.ExitWriteLock,
+			exceptionFactory);
+
+	public static LockScope UpgradeableReadLockScope(
+		this ReaderWriterLockSlim @lock,
+		Func<Exception>? exceptionFactory = null)
+		=>
+		new(
+			@lock.EnterUpgradeableReadLock,
+			@lock.ExitUpgradeableReadLock,
+			exceptionFactory);
 }
 
-internal static class ReaderWriterLockSlimExtensions
+
+internal readonly ref struct LockScope
 {
-	public static ReadLockScope ReadLockScope(this ReaderWriterLockSlim @lock) => new(@lock);
-	public static WriteLockScope WriteLockScope(this ReaderWriterLockSlim @lock) => new(@lock);
-	public static UpgradeableReadLockScope UpgradeableReadLockScope(this ReaderWriterLockSlim @lock) => new(@lock);
-}
+	private readonly Action exit;
 
-internal readonly ref struct ReadLockScope
-{
-	private readonly ReaderWriterLockSlim @lock;
+	[Obsolete("Do not use", true)] public LockScope() => throw new InvalidOperationException();
 
-	[Obsolete("Do not use", true)]
-	public ReadLockScope() => throw new InvalidOperationException();
-
-	public ReadLockScope(ReaderWriterLockSlim @lock)
+	internal LockScope(Action enter, Action exit, Func<Exception>? exceptionFactory)
 	{
 		try
 		{
-			this.@lock = @lock;
-			this.@lock.EnterReadLock();
+			enter.Invoke();
 		}
-		catch (Exception ex) when (Helpers.Debug(ex)) { throw; }
-	}
-
-	public void Dispose()
-	{
-		@lock.ExitReadLock();
-	}
-}
-internal readonly ref struct WriteLockScope
-{
-	private readonly ReaderWriterLockSlim @lock;
-
-	[Obsolete("Do not use", true)]
-	public WriteLockScope() => throw new InvalidOperationException();
-
-	public WriteLockScope(ReaderWriterLockSlim @lock)
-	{
-		try
+		catch (LockRecursionException)
+		when (exceptionFactory is not null)
 		{
-			this.@lock = @lock;
-			this.@lock.EnterWriteLock();
+			throw exceptionFactory();
 		}
-		catch (Exception ex) when (Helpers.Debug(ex)) { throw; }
+		//catch (LockRecursionException ex)
+		//when (Debug(ex)) { throw; }
+		//static bool Debug(LockRecursionException ex)
+		//{
+		//	_ = ex;
+		//	if (Debugger.IsAttached) { Debugger.Break(); }
+		//	return false;
+		//}
+
+		this.exit = exit;
 	}
 
-	public void Dispose()
-	{
-		@lock.ExitWriteLock();
-	}
-}
-internal readonly ref struct UpgradeableReadLockScope
-{
-	private readonly ReaderWriterLockSlim @lock;
-
-	[Obsolete("Do not use", true)]
-	public UpgradeableReadLockScope() => throw new InvalidOperationException();
-
-	public UpgradeableReadLockScope(ReaderWriterLockSlim @lock)
-	{
-		try
-		{
-			this.@lock = @lock;
-			this.@lock.EnterUpgradeableReadLock();
-		}
-		catch (Exception ex) when (Helpers.Debug(ex)) { throw; }
-	}
-
-	public void Dispose()
-	{
-		@lock.ExitUpgradeableReadLock();
-	}
+	public void Dispose() => exit.Invoke();
 }
