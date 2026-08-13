@@ -48,6 +48,7 @@ public sealed partial class ReactiveList<T> : IList<T>, IList, IReadOnlyList<T>,
 	public void Clear()
 	{
 		using (Reactive.Defer())
+		using (Reactive.Untrack())
 		{
 			Node? current = marker.Next;
 			while (current is not null)
@@ -70,71 +71,98 @@ public sealed partial class ReactiveList<T> : IList<T>, IList, IReadOnlyList<T>,
 
 	public bool Remove(T value)
 	{
-		var node = Find(value);
-		if (node != null)
+		using (Reactive.Untrack())
 		{
-			InternalRemoveNode(node);
-			return true;
+			var node = Find(value);
+			if (node != null)
+			{
+				InternalRemoveNode(node);
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	#region Linked list
 
 	public Node AddAfter(Node node, T value)
 	{
-		ValidateNode(node);
-		var result = new Node(value);
-		InternalInsertNodeBefore(node.internalNext.Value!, result);
-		return result;
+		using (Reactive.Untrack())
+		{
+			ValidateNode(node);
+			var result = new Node(value);
+			InternalInsertNodeBefore(node.internalNext.Value!, result);
+			return result;
+		}
 	}
 
 	public void AddAfter(Node node, Node newNode)
 	{
-		ValidateNode(node);
-		ValidateNewNode(newNode);
-		InternalInsertNodeBefore(node.internalNext.Value!, newNode);
+		using (Reactive.Untrack())
+		{
+			ValidateNode(node);
+			ValidateNewNode(newNode);
+			InternalInsertNodeBefore(node.internalNext.Value!, newNode);
+		}
 	}
 
 	public Node AddBefore(Node node, T value)
 	{
-		ValidateNode(node);
-		var result = new Node(value);
-		InternalInsertNodeBefore(node, result);
-		return result;
+		using (Reactive.Untrack())
+		{
+			ValidateNode(node);
+			var result = new Node(value);
+			InternalInsertNodeBefore(node, result);
+			return result;
+		}
 	}
 
 	public void AddBefore(Node node, Node newNode)
 	{
-		ValidateNode(node);
-		ValidateNewNode(newNode);
-		InternalInsertNodeBefore(node, newNode);
+		using (Reactive.Untrack())
+		{
+			ValidateNode(node);
+			ValidateNewNode(newNode);
+			InternalInsertNodeBefore(node, newNode);
+		}
 	}
 
 	public Node AddFirst(T value)
 	{
-		var result = new Node(value);
-		InternalInsertNodeBefore(marker.internalNext.Value!, result);
-		return result;
+		using (Reactive.Untrack())
+		{
+			var result = new Node(value);
+			InternalInsertNodeBefore(marker.internalNext.Value!, result);
+			return result;
+		}
 	}
 
 	public void AddFirst(Node node)
 	{
-		ValidateNewNode(node);
-		InternalInsertNodeBefore(marker.internalNext.Value!, node);
+		using (Reactive.Untrack())
+		{
+			ValidateNewNode(node);
+			InternalInsertNodeBefore(marker.internalNext.Value!, node);
+		}
 	}
 
 	public Node AddLast(T value)
 	{
-		var result = new Node(value);
-		InternalInsertNodeBefore(marker, result);
-		return result;
+		using (Reactive.Untrack())
+		{
+			var result = new Node(value);
+			InternalInsertNodeBefore(marker, result);
+			return result;
+		}
 	}
 
 	public void AddLast(Node node)
 	{
-		ValidateNewNode(node);
-		InternalInsertNodeBefore(marker, node);
+		using (Reactive.Untrack())
+		{
+			ValidateNewNode(node);
+			InternalInsertNodeBefore(marker, node);
+		}
 	}
 
 	public Node? Find(T value)
@@ -175,22 +203,31 @@ public sealed partial class ReactiveList<T> : IList<T>, IList, IReadOnlyList<T>,
 
 	public void Remove(Node node)
 	{
-		ValidateNode(node);
-		InternalRemoveNode(node);
+		using (Reactive.Untrack())
+		{
+			ValidateNode(node);
+			InternalRemoveNode(node);
+		}
 	}
 
 	public void RemoveFirst()
 	{
-		if (First is not {/*notnull*/} first) { throw new InvalidOperationException(); }
+		using (Reactive.Untrack())
+		{
+			if (First is not {/*notnull*/} first) { throw new InvalidOperationException(); }
 
-		InternalRemoveNode(first);
+			InternalRemoveNode(first);
+		}
 	}
 
 	public void RemoveLast()
 	{
-		if (Last is not {/*notnull*/} last) { throw new InvalidOperationException(); }
+		using (Reactive.Untrack())
+		{
+			if (Last is not {/*notnull*/} last) { throw new InvalidOperationException(); }
 
-		InternalRemoveNode(last);
+			InternalRemoveNode(last);
+		}
 	}
 
 	private void InternalInsertNodeBefore(Node node, Node newNode)
@@ -285,27 +322,45 @@ public sealed partial class ReactiveList<T> : IList<T>, IList, IReadOnlyList<T>,
 	public T this[int index]
 	{
 		get => GetAt(index).Value;
-		set => GetAt(index).Value = value;
+		set
+		{
+			using (Reactive.Untrack())
+			{
+				GetAt(index).Value = value;
+			}
+		}
 	}
 
 	public void Add(T item)
 	{
-		var newNode = new Node(item);
-		InternalInsertNodeBefore(marker, newNode);
+		using (Reactive.Untrack())
+		{
+			var newNode = new Node(item);
+			InternalInsertNodeBefore(marker, newNode);
+		}
 	}
 
 	public int IndexOf(T item) => Find(item)?.Index ?? -1;
 
 	public void Insert(int index, T item)
 	{
-		var newNode = new Node(item);
-		var referenceNode = InternalGetAt(index);
-		InternalInsertNodeBefore(referenceNode, newNode);
+		using (Reactive.Untrack())
+		{
+			var newNode = new Node(item);
+			var referenceNode = InternalGetAt(index);
+			InternalInsertNodeBefore(referenceNode, newNode);
+		}
 	}
 
 	public int LastIndexOf(T item) => FindLast(item)?.Index ?? -1;
 
-	public void RemoveAt(int index) => InternalRemoveNode(GetAt(index));
+	public void RemoveAt(int index)
+	{
+		using (Reactive.Untrack())
+		{
+			InternalRemoveNode(GetAt(index));
+		}
+	}
 
 	#endregion
 
@@ -325,29 +380,38 @@ public sealed partial class ReactiveList<T> : IList<T>, IList, IReadOnlyList<T>,
 
 	int IList.Add(object? value)
 	{
-		var node = AddLast((T)value!);
-		return node.Index;
+		using (Reactive.Untrack())
+		{
+			var node = AddLast((T)value!);
+			return node.Index;
+		}
 	}
 
 	bool IList.Contains(object? value) => Contains((T)value!);
 
 	void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 	{
-		using var enumerator = GetEnumerator();
-
-		for (var i = arrayIndex; i < array.Length && enumerator.MoveNext(); i++)
+		using (Reactive.Untrack())
 		{
-			array[i] = enumerator.Current;
+			using var enumerator = GetEnumerator();
+
+			for (var i = arrayIndex; i < array.Length && enumerator.MoveNext(); i++)
+			{
+				array[i] = enumerator.Current;
+			}
 		}
 	}
 
 	void ICollection.CopyTo(Array array, int index)
 	{
-		using var enumerator = GetEnumerator();
-
-		for (var i = index; i < array.Length && enumerator.MoveNext(); i++)
+		using (Reactive.Untrack())
 		{
-			array.SetValue(enumerator.Current, i);
+			using var enumerator = GetEnumerator();
+
+			for (var i = index; i < array.Length && enumerator.MoveNext(); i++)
+			{
+				array.SetValue(enumerator.Current, i);
+			}
 		}
 	}
 
