@@ -70,7 +70,14 @@ public sealed partial class WindowsFormsWatcher : Watcher
 	{
 		if (Interlocked.Exchange(ref pending, TRUE) is FALSE)
 		{
-			_ = control.BeginInvoke(RunPending);
+			if (control.IsHandleCreated is false)
+			{
+				control.HandleCreated += (_, _) => RunPending();
+			}
+			else
+			{
+				_ = control.BeginInvoke(RunPending);
+			}
 		}
 
 		//if (sets.GetOrAdd(timer, _ => []).TryAdd(this, default))

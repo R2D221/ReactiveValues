@@ -24,24 +24,41 @@ public abstract class Watcher
 
 	protected IEnumerable<Effect> GetPending()
 	{
-		using var i = node.GetInternals(LockAction.Recompute);
-
-		while (i.TryDequeueModifiedSource() is { } sourceWithValue)
+		node.@lock.EnterWriteLock();
+		try
 		{
-			using var source = sourceWithValue.Reactive.GetInternals(LockAction.Recompute);
-
-			if (source.IsValid is false)
+			while (node.TryDequeueModifiedSource() is { } sourceWithValue)
 			{
-				yield return ((EffectNode)sourceWithValue.Reactive).Effect;
+				var source = sourceWithValue.Reactive;
 
-				if (source.IsValid is false)
+				bool sourceIsValid;
+				using (source.@lock.ReadLockScope())
 				{
-					i.MarkSourceModified(sourceWithValue.Reactive);
+					sourceIsValid = source.isValid;
+				}
+
+				if (sourceIsValid is false)
+				{
+					yield return ((EffectNode)sourceWithValue.Reactive).Effect;
+
+					using (source.@lock.ReadLockScope())
+					{
+						sourceIsValid = source.isValid;
+					}
+
+					if (sourceIsValid is false)
+					{
+						node.MarkSourceModified(sourceWithValue.Reactive);
+					}
 				}
 			}
-		}
 
-		i.MarkValid();
+			node.MarkValid();
+		}
+		finally
+		{
+			node.@lock.ExitWriteLock();
+		}
 	}
 }
 
@@ -53,40 +70,42 @@ internal sealed class WatcherNode : Reactive<ValueTuple>
 	{
 		this.watcher = watcher;
 
-		using var i = GetInternals(LockAction._);
-		i.SetValue(default);
+		SetValue(default);
 	}
 
 	public void Watch(Effect effect)
 	{
 		if (frozen.Value) { throw new FrozenReactiveGraphException(); }
 
-		using var i = GetInternals(LockAction.Recompute);
-
-		using (Reactive.Track(i))
+		using (@lock.WriteLockScope())
 		{
-			effect.Run();
-
-			using var x = effect.Node.GetInternals(LockAction.Recompute);
-			x.UpdateIsWatched();
+			using (Reactive.Track(this))
+			{
+				effect.Run();
+			}
 		}
+
+		effect.Node.UpdateIsWatched();
 	}
 
 	public void Watch(params ReadOnlySpan<Effect> effects)
 	{
 		if (frozen.Value) { throw new FrozenReactiveGraphException(); }
 
-		using var i = GetInternals(LockAction.Recompute);
-
-		using (Reactive.Track(i))
+		using (@lock.WriteLockScope())
 		{
-			foreach (var effect in effects)
+			using (Reactive.Track(this))
 			{
-				effect.Run();
-
-				using var x = effect.Node.GetInternals(LockAction.Recompute);
-				x.UpdateIsWatched();
+				foreach (var effect in effects)
+				{
+					effect.Run();
+				}
 			}
+		}
+
+		foreach (var effect in effects)
+		{
+			effect.Node.UpdateIsWatched();
 		}
 	}
 
@@ -94,40 +113,52 @@ internal sealed class WatcherNode : Reactive<ValueTuple>
 	{
 		if (frozen.Value) { throw new FrozenReactiveGraphException(); }
 
-		using var watcher = GetInternals(LockAction._);
+		var watcher = this;
+		var effectNode = effect.Node;
 
-		using var effectInternals = effect.Node.GetInternals(LockAction._);
-
-		watcher.RemoveSource(effect.Node);
-		effectInternals.RemoveReceiver(this);
-
-		effectInternals.UpdateIsWatched();
-
-		if (watcher.ModifiedSources.Any() is false)
+		using (@lock.WriteLockScope())
+		using (effectNode.@lock.WriteLockScope())
 		{
-			watcher.MarkValid();
+			watcher.RemoveSource(effect.Node);
+			effectNode.RemoveReceiver(watcher);
+
+			if (watcher.modifiedSources.Count == 0)
+			{
+				watcher.MarkValid();
+			}
 		}
+
+		effectNode.UpdateIsWatched();
 	}
 
 	public void Unwatch(params ReadOnlySpan<Effect> effects)
 	{
 		if (frozen.Value) { throw new FrozenReactiveGraphException(); }
 
-		using var watcher = GetInternals(LockAction._);
+		var watcher = this;
 
-		foreach (var effectNode in effects)
+		using (@lock.WriteLockScope())
 		{
-			using var effect = effectNode.Node.GetInternals(LockAction._);
+			foreach (var effect in effects)
+			{
+				var effectNode = effect.Node;
 
-			watcher.RemoveSource(effectNode.Node);
-			effect.RemoveReceiver(this);
+				using (effectNode.@lock.WriteLockScope())
+				{
+					watcher.RemoveSource(effect.Node);
+					effectNode.RemoveReceiver(watcher);
+				}
+			}
 
-			effect.UpdateIsWatched();
+			if (watcher.modifiedSources.Count == 0)
+			{
+				watcher.MarkValid();
+			}
 		}
 
-		if (watcher.ModifiedSources.Any() is false)
+		foreach (var effect in effects)
 		{
-			watcher.MarkValid();
+			effect.Node.UpdateIsWatched();
 		}
 	}
 

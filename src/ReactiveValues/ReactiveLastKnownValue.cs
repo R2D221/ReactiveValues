@@ -14,7 +14,7 @@ internal class ReactiveLastKnownValue(Reactive reactive, int lastSeenVersion)
 
 	public Reactive Reactive => reactive;
 
-	public virtual bool ValueIsCurrent => reactive.IsCurrent(lastSeenVersion);
+	public virtual bool ValueIsCurrent_EnsureValid() => reactive.IsCurrent_EnsureValid(lastSeenVersion);
 }
 
 internal sealed class ReactiveLastKnownValue<T>(Reactive<T> reactive, int lastSeenVersion, T lastSeenValue)
@@ -22,5 +22,5 @@ internal sealed class ReactiveLastKnownValue<T>(Reactive<T> reactive, int lastSe
 {
 	public new Reactive<T> Reactive => Unsafe.As<Reactive<T>>(base.Reactive);
 
-	public override bool ValueIsCurrent => Reactive.IsCurrent(lastSeenVersion, lastSeenValue);
+	public override bool ValueIsCurrent_EnsureValid() => Reactive.IsCurrent_EnsureValid(lastSeenVersion, lastSeenValue);
 }

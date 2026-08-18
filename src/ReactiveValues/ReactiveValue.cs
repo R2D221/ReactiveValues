@@ -9,10 +9,11 @@ public sealed class ReactiveValue<T> : Reactive<T>
 
 	public ReactiveValue(T value, EqualityComparer<T?> equality) : base(() => throw new UnreachableException(), equality)
 	{
-		using var i = GetInternals(LockAction._);
-
-		i.SetValue(value);
-		i.MarkLive();
+		using (@lock.WriteLockScope())
+		{
+			SetValue(value);
+			MarkLive();
+		}
 	}
 
 	public new T Value
@@ -25,12 +26,21 @@ public sealed class ReactiveValue<T> : Reactive<T>
 
 			using (Reactive.Defer())
 			{
-				using var i = GetInternals(LockAction._);
+				using (@lock.UpgradeableReadLockScope())
+				{
+					if (ValueIsEqual(value))
+					{
+						return;
+					}
 
-				if (i.ValueIsEqual(value)) { return; }
+					using (@lock.WriteLockScope())
+					{
+						MarkInvalid();
+						SetValue(value);
+					}
+				}
 
-				i.Invalidate();
-				i.SetValue(value);
+				Invalidate();
 			}
 		}
 	}

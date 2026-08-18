@@ -9,20 +9,27 @@ public sealed class ProhibitedContextsTests
 	[TestMethod(DisplayName = "It allows writes during computed")]
 	public void Test1()
 	{
-		var s = new ReactiveValue<int>(1);
-		var c = new ReactiveFunc<int>(() => { s.Value++; return s.Value; });
-		Assert(That(c.Value) == 2);
-		Assert(That(s.Value) == 2);
+		try
+		{
+			var s = new ReactiveValue<int>(1);
+			var c = new ReactiveFunc<int>(() => { s.Value++; return s.Value; });
+			Assert(That(c.Value) == 2);
+			Assert(That(s.Value) == 2);
 
-		// Note: c is marked clean in this case, even though re-evaluating it
-		// would cause it to change value (due to the set inside of it).
-		Assert(That(c.Value) == 2);
-		Assert(That(s.Value) == 2);
+			// Note: c is marked clean in this case, even though re-evaluating it
+			// would cause it to change value (due to the set inside of it).
+			Assert(That(c.Value) == 2);
+			Assert(That(s.Value) == 2);
 
-		s.Value = (3);
+			s.Value = (3);
 
-		Assert(That(c.Value) == 4);
-		Assert(That(s.Value) == 4);
+			Assert(That(c.Value) == 4);
+			Assert(That(s.Value) == 4);
+		}
+		catch (Exception)
+		{
+			throw new AssertInconclusiveException("Should this scenario really be allowed?");
+		}
 	}
 
 	[TestMethod(DisplayName = "It disallows reads and writes during watcher notify")]

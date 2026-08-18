@@ -12,13 +12,17 @@ public static class ReactiveDiagnostics
 
 	public static ImmutableArray<Reactive> GetSources(Reactive receiver)
 	{
-		using var s = receiver.GetInternals(LockAction._);
-		return [.. s.Sources.Select(x => x.Reactive)];
+		using (receiver.@lock.ReadLockScope())
+		{
+			return [.. receiver.sources.Keys];
+		}
 	}
 
 	public static ImmutableArray<Reactive> GetReceivers(Reactive reactive)
 	{
-		using var s = reactive.GetInternals(LockAction._);
-		return [.. s.Receivers];
+		using (reactive.@lock.ReadLockScope())
+		{
+			return [.. reactive.Receivers];
+		}
 	}
 }

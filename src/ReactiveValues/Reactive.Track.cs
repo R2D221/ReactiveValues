@@ -4,49 +4,56 @@ namespace ReactiveValues;
 
 partial class Reactive
 {
-	internal static readonly ThreadLocal<Internals?> currentReceiver = new();
+	internal static readonly ThreadLocal<Reactive?> currentReceiver = new();
 
-	internal static void AddSource<T>(ReactiveFunc<T> sourceNode, int currentVersion, T currentValue)
+	internal static void AddSource<T>(Reactive<T> source, int currentVersion, T currentValue)
 	{
 		if (currentReceiver.Value is {/*notnull*/} receiver)
 		{
-			using var source = sourceNode.GetInternals(LockAction.Recompute);
+			System.Diagnostics.Debug.Assert(receiver.@lock.IsWriteLockHeld);
 
-			source.AddReceiver(receiver.Reactive);
-
-			if (source.IsLive)
+			using (source.@lock.WriteLockScope())
 			{
-				receiver.AddSource(new ReactiveLastKnownValue<T>(sourceNode, currentVersion, currentValue));
+				source.AddReceiver(receiver);
+			}
+
+			if (source.isLive)
+			{
+				receiver.AddSource(new ReactiveLastKnownValue<T>(source, currentVersion, currentValue));
 				receiver.MarkLive();
 			}
 		}
 	}
 
-	internal static void AddSource<T>(ReactiveFunc<T> sourceNode, int currentVersion)
+	internal static void AddSource<T>(Reactive<T> source, int currentVersion)
 	{
 		if (currentReceiver.Value is {/*notnull*/} receiver)
 		{
-			using var source = sourceNode.GetInternals(LockAction.Recompute);
+			System.Diagnostics.Debug.Assert(receiver.@lock.IsWriteLockHeld);
 
-			source.AddReceiver(receiver.Reactive);
-			receiver.AddSource(new ReactiveLastKnownValue(sourceNode, currentVersion));
+			using (source.@lock.WriteLockScope())
+			{
+				source.AddReceiver(receiver);
+			}
+
+			receiver.AddSource(new ReactiveLastKnownValue(source, currentVersion));
 		}
 	}
 
-	internal static TrackingScope Track(Internals receiver) => new(currentReceiver, receiver);
+	internal static TrackingScope Track(Reactive receiver) => new(currentReceiver, receiver);
 
 	public static TrackingScope Untrack() => new(currentReceiver, null);
 
 	[EditorBrowsable(EditorBrowsableState.Never)]
 	public readonly ref struct TrackingScope
 	{
-		private readonly ThreadLocal<Internals?> threadLocal;
-		private readonly Internals? oldReceiver;
+		private readonly ThreadLocal<Reactive?> threadLocal;
+		private readonly Reactive? oldReceiver;
 
 		[Obsolete("Do not use", true)]
 		public TrackingScope() => throw new InvalidOperationException();
 
-		internal TrackingScope(ThreadLocal<Internals?> threadLocal, Internals? newReceiver)
+		internal TrackingScope(ThreadLocal<Reactive?> threadLocal, Reactive? newReceiver)
 		{
 			this.threadLocal = threadLocal;
 
