@@ -12,12 +12,15 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="MSTest" Version="4.0.1" />
-		<PackageReference Include="PolySharp" Version="1.15.0">
+		<PackageReference Include="MSTest" />
+		<PackageReference Include="PolySharp">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="System.Threading.Channels" Version="*" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<PackageReference Include="System.Threading.Channels" />
 	</ItemGroup>
 
 	<ItemGroup>
