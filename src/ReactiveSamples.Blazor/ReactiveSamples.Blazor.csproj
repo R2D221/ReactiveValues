@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -8,8 +8,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Blazicons.Bootstrap" Version="2.3.40" />
-		<PackageReference Include="PodNet.Blazor.TypedRoutes" Version="1.0.0" />
+		<PackageReference Include="Blazicons.Bootstrap" />
+		<PackageReference Include="PodNet.Blazor.TypedRoutes" />
 	</ItemGroup>
 
 	<ItemGroup>

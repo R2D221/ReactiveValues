@@ -12,7 +12,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="AmbientTasks" Version="1.0.1" />
+		<!--<PackageReference Include="AmbientTasks" />-->
 	</ItemGroup>
 
 	<ItemGroup>

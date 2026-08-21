@@ -1,14 +1,10 @@
-﻿<Project Sdk="Microsoft.Build.NoTargets/3.7.134">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFrameworks>net8.0</TargetFrameworks>
+		<TargetFrameworks>net10.0</TargetFrameworks>
 		<LangVersion>14.0</LangVersion>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
-
-	<ItemGroup>
-		<Compile Include="Compatibility\**\*.cs" />
-	</ItemGroup>
 
 </Project>
