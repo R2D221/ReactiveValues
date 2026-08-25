@@ -1,31 +1,35 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFrameworks>net462;netstandard2.0;net8.0</TargetFrameworks>
-    <LangVersion>14.0</LangVersion>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>net462;netstandard2.0;net8.0</TargetFrameworks>
+		<LangVersion>14.0</LangVersion>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
 
-  <ItemGroup>
-    <Compile Include="..\Compatibility\Compatibility\**\*.cs" LinkBase="Compatibility" />
-  </ItemGroup>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/R2D221/ReactiveValues</PackageProjectUrl>
+		<Description>C# reactive values inspired by JS signals.</Description>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="PolySharp">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
+	<ItemGroup>
+		<Compile Include="..\Compatibility\Compatibility\**\*.cs" LinkBase="Compatibility" />
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
-    <PackageReference Include="System.Collections.Immutable" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="PolySharp">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+	</ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Microsoft.Bcl.TimeProvider" />
-    <PackageReference Include="System.Collections.Immutable" />
-  </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" />
+		<PackageReference Include="System.Collections.Immutable" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Bcl.TimeProvider" />
+		<PackageReference Include="System.Collections.Immutable" />
+	</ItemGroup>
 
 </Project>
