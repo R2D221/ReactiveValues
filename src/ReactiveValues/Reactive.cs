@@ -22,7 +22,10 @@ public abstract partial class Reactive
 		}
 	}
 
+	#region Connections
+
 	internal readonly Dictionary<Reactive, ReactiveLastKnownValue> sources = [];
+
 	private protected readonly Queue<Reactive> modifiedSources = [];
 
 	private protected readonly HashSet<WeakReference<Reactive>> receivers =
@@ -30,6 +33,88 @@ public abstract partial class Reactive
 
 	private protected readonly HashSet<WeakReference<Reactive>> watchers =
 		new(comparer: WeakEqualityComparer<Reactive>.Instance);
+
+	internal void AddSource(ReactiveLastKnownValue source)
+	{
+		sources.TryAdd(source.Reactive, source);
+	}
+
+	internal void RemoveSource(Reactive source)
+	{
+		if (source.isValid is false)
+		{
+			modifiedSources.RemoveAll(source);
+		}
+
+		sources.Remove(source);
+	}
+
+	internal void ClearSources()
+	{
+		sources.Clear();
+		modifiedSources.Clear();
+	}
+
+	internal void MarkSourceModified(Reactive source)
+	{
+		if (sources.ContainsKey(source))
+		{
+			modifiedSources.Enqueue(source);
+		}
+		else
+		{
+			throw new UnreachableException();
+		}
+	}
+
+	internal ReactiveLastKnownValue? TryDequeueModifiedSource()
+	{
+		if (modifiedSources.TryDequeue(out var source))
+		{
+			return sources[source];
+		}
+		else
+		{
+			return null;
+		}
+	}
+
+	internal IEnumerable<Reactive> EnumerateLiveReceivers() =>
+		receivers
+		.Select(x => x.TryGetTarget(out var xx) ? xx : null)
+		.OfType<Reactive>();
+
+	internal void AddReceiver(Reactive receiver)
+	{
+		receivers.Add(new(receiver));
+
+		if (receiver is WatcherNode || receiver.isWatched)
+		{
+			watchers.Add(new(receiver));
+		}
+	}
+
+	internal void RemoveReceiver(Reactive receiver)
+	{
+		receivers.Remove(new(receiver));
+
+		if (receiver is WatcherNode || receiver.isWatched)
+		{
+			watchers.Remove(new(receiver));
+		}
+	}
+
+	internal void AddWatcher(Reactive watcher)
+	{
+		watchers.Add(new(watcher));
+	}
+
+	internal void RemoveWatcher(Reactive watcher)
+	{
+		watchers.Remove(new(watcher));
+	}
+
+	#endregion
 
 	internal readonly ReaderWriterLockSlim @lock = new();
 	internal bool isValid;
@@ -83,20 +168,6 @@ public abstract partial class Reactive
 		unwatched.Raise(this, EventArgs.Empty);
 	}
 
-	internal ReactiveLastKnownValue? TryDequeueModifiedSource()
-	{
-		if (modifiedSources.TryDequeue(out var source))
-		{
-			return sources[source];
-		}
-		else
-		{
-			return null;
-		}
-	}
-
-	internal IEnumerable<Reactive> Receivers => receivers.Select(x => x.TryGetTarget(out var xx) ? xx : null).OfType<Reactive>();
-
 	internal void MarkInvalid()
 	{
 		isValid = false;
@@ -107,69 +178,6 @@ public abstract partial class Reactive
 	internal void MarkValid()
 	{
 		isValid = true;
-	}
-
-	internal void ClearSources()
-	{
-		sources.Clear();
-		modifiedSources.Clear();
-	}
-
-	internal void AddSource(ReactiveLastKnownValue source)
-	{
-		sources.TryAdd(source.Reactive, source);
-	}
-
-	internal void RemoveSource(Reactive source)
-	{
-		if (source.isValid is false)
-		{
-			modifiedSources.RemoveAll(source);
-		}
-
-		sources.Remove(source);
-	}
-
-	internal void AddReceiver(Reactive receiver)
-	{
-		receivers.Add(new(receiver));
-
-		if (receiver is WatcherNode || receiver.isWatched)
-		{
-			watchers.Add(new(receiver));
-		}
-	}
-
-	internal void RemoveReceiver(Reactive receiver)
-	{
-		receivers.Remove(new(receiver));
-
-		if (receiver is WatcherNode || receiver.isWatched)
-		{
-			watchers.Remove(new(receiver));
-		}
-	}
-
-	internal void AddWatcher(Reactive watcher)
-	{
-		watchers.Add(new(watcher));
-	}
-
-	internal void RemoveWatcher(Reactive watcher)
-	{
-		watchers.Remove(new(watcher));
-	}
-
-	internal void MarkSourceModified(Reactive source)
-	{
-		if (sources.ContainsKey(source))
-		{
-			modifiedSources.Enqueue(source);
-		}
-		else
-		{
-			throw new UnreachableException();
-		}
 	}
 
 	internal void MarkLive()
@@ -193,7 +201,7 @@ public abstract partial class Reactive
 
 			using (current.@lock.ReadLockScope())
 			{
-				currentReceivers = [.. Enumerable.Reverse(current.Receivers)];
+				currentReceivers = [.. Enumerable.Reverse(current.EnumerateLiveReceivers())];
 			}
 
 			foreach (var next in currentReceivers)
@@ -389,7 +397,6 @@ public abstract class Reactive<T>(
 		value = default;
 		MarkValid();
 	}
-
 
 	internal void Recompute(out IReadOnlyCollection<Reactive> sourcesUpdateIsWatched)
 	{

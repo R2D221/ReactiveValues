@@ -22,7 +22,7 @@ public static class ReactiveDiagnostics
 	{
 		using (reactive.@lock.ReadLockScope())
 		{
-			return [.. reactive.Receivers];
+			return [.. reactive.EnumerateLiveReceivers()];
 		}
 	}
 }
