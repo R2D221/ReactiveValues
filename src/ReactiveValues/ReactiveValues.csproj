@@ -6,6 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
+		<Version>1.0.0-beta.1</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/R2D221/ReactiveValues</PackageProjectUrl>
 		<Description>C# reactive values inspired by JS signals.</Description>
