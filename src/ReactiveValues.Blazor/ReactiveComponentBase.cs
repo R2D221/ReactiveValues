@@ -5,7 +5,7 @@ using System.ComponentModel;
 namespace ReactiveValues.Blazor;
 
 [EditorBrowsable(EditorBrowsableState.Never)]
-public abstract class InternalReactiveComponentBase : ComponentBase, IDisposable
+public abstract class InternalReactiveComponentBase : ComponentBase, IHandleEvent, IDisposable
 {
 	private readonly BlazorWatcher watcher;
 	private readonly Effect effect;
@@ -36,6 +36,11 @@ public abstract class InternalReactiveComponentBase : ComponentBase, IDisposable
 	public virtual void Dispose()
 	{
 		watcher.Unwatch(effect);
+	}
+
+	async Task IHandleEvent.HandleEventAsync(EventCallbackWorkItem item, object? arg)
+	{
+		await item.InvokeAsync(arg);
 	}
 }
 
