@@ -14,14 +14,6 @@ internal static partial class CompatibilityExtensions
 		{
 			return @this.AddOrUpdate(key, k => addValueFactory(k, factoryArgument), (k, v) => updateValueFactory(k, v, factoryArgument));
 		}
-
-		public TValue GetOrAdd<TArg>(
-			TKey key,
-			Func<TKey, TArg, TValue> valueFactory,
-			TArg factoryArgument)
-		{
-			return @this.GetOrAdd(key, k => valueFactory(k, factoryArgument));
-		}
 	}
 	#endregion
 }

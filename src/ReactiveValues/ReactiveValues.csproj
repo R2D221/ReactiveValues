@@ -10,6 +10,27 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/R2D221/ReactiveValues</PackageProjectUrl>
 		<Description>C# reactive values inspired by JS signals.</Description>
+		
+		<MeziantouPolyfill_IncludedPolyfills>
+			|M:System.Collections.Generic.Dictionary`2.TryAdd(`0,`1)
+			|M:System.Collections.Generic.EqualityComparer`1.Create(System.Func{`0,`0,System.Boolean},System.Func{`0,System.Int32})
+			|M:System.Collections.Generic.KeyValuePair`2.Deconstruct(`0@,`1@)
+			|M:System.Collections.Generic.Queue`1.TryDequeue(`0@)
+			|M:System.Collections.Generic.Stack`1.TryPeek(`0@)
+			|M:System.Collections.Generic.Stack`1.TryPop(`0@)
+			|T:System.Diagnostics.CodeAnalysis.AllowNullAttribute
+			|T:System.Diagnostics.CodeAnalysis.DisallowNullAttribute
+			|T:System.Diagnostics.CodeAnalysis.DoesNotReturnAttribute
+			|T:System.Diagnostics.CodeAnalysis.DoesNotReturnIfAttribute
+			|T:System.Diagnostics.CodeAnalysis.MaybeNullAttribute
+			|T:System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute
+			|T:System.Diagnostics.CodeAnalysis.NotNullAttribute
+			|T:System.Diagnostics.CodeAnalysis.NotNullIfNotNullAttribute
+			|T:System.Diagnostics.CodeAnalysis.NotNullWhenAttribute
+			|T:System.Diagnostics.UnreachableException
+			|T:System.Threading.PeriodicTimer
+		</MeziantouPolyfill_IncludedPolyfills>
+		<MeziantouPolyfill_GenerateDebugFile>true</MeziantouPolyfill_GenerateDebugFile>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -17,18 +38,20 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="PolySharp">
+		<PackageReference Include="Meziantou.Polyfill">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+		<PackageReference Include="Microsoft.Bcl.Memory" />
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" />
 		<PackageReference Include="System.Collections.Immutable" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+		<PackageReference Include="Microsoft.Bcl.Memory" />
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" />
 		<PackageReference Include="System.Collections.Immutable" />
 	</ItemGroup>
