@@ -19,9 +19,9 @@ public sealed partial class DebounceThrottleViewModel : ReactiveObject
 		set => Set(() => Input, value);
 	}
 
-	public string DebouncedInput => Computed(() => DebouncedInput,
-		() => Debounce(() => Input, Interval));
+	//public string DebouncedInput => Computed(() => DebouncedInput,
+	//	() => Debounce(() => Input, Interval));
 
-	public string ThrottledInput => Computed(() => ThrottledInput,
-		() => Throttle(() => Input, Interval));
+	//public string ThrottledInput => Computed(() => ThrottledInput,
+	//	() => Throttle(() => Input, Interval));
 }

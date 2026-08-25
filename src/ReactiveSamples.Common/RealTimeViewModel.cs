@@ -22,10 +22,10 @@ public sealed partial class RealTimeViewModel : ReactiveObject
 
 	public enum Selection { DateTime, Fps }
 
-	private ReactiveFunc<DateTime> InternalDateTimeNow => Computed(() => InternalDateTimeNow,
-		() => Reactive.Throttle(Reactive.Volatile(() => DateTime.Now), Interval));
+	//private ReactiveFunc<DateTime> InternalDateTimeNow => Computed(() => InternalDateTimeNow,
+	//	() => Reactive.Throttle(Reactive.Volatile(() => DateTime.Now), Interval));
 
-	public DateTime DateTimeNow => Computed(() => DateTimeNow, () => InternalDateTimeNow.Value);
+	//public DateTime DateTimeNow => Computed(() => DateTimeNow, () => InternalDateTimeNow.Value);
 
 	public FPS FPS => Computed(() => FPS,
 		() => new FPS(Interval));

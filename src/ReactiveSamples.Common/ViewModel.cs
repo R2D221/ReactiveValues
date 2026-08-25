@@ -1,5 +1,4 @@
-﻿using ReactiveValues;
-using ReactiveValues.DataTypes;
+﻿using ReactiveValues.DataTypes;
 
 namespace ReactiveSamples.Common;
 

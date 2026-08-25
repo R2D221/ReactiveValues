@@ -115,25 +115,25 @@ public abstract partial class ReactiveObject
 		return Get<ReactiveFunc<T>, T>(reactive, name);
 	}
 
-	protected T Debounce<T>(Func<T> expr, TimeSpan interval)
-	{
-		var result =
-			(ReactiveFunc<T>)debounces.GetValue(
-				expr,
-				expr => Reactive.Debounce(new ReactiveFunc<T>((Func<T>)expr), interval));
+	//protected T Debounce<T>(Func<T> expr, TimeSpan interval)
+	//{
+	//	var result =
+	//		(ReactiveFunc<T>)debounces.GetValue(
+	//			expr,
+	//			expr => Reactive.Debounce(new ReactiveFunc<T>((Func<T>)expr), interval));
 
-		return result.Value;
-	}
+	//	return result.Value;
+	//}
 
-	protected T Throttle<T>(Func<T> expr, TimeSpan interval)
-	{
-		var result =
-			(ReactiveFunc<T>)throttles.GetValue(
-				expr,
-				expr => Reactive.Throttle(new ReactiveFunc<T>((Func<T>)expr), interval));
+	//protected T Throttle<T>(Func<T> expr, TimeSpan interval)
+	//{
+	//	var result =
+	//		(ReactiveFunc<T>)throttles.GetValue(
+	//			expr,
+	//			expr => Reactive.Throttle(new ReactiveFunc<T>((Func<T>)expr), interval));
 
-		return result.Value;
-	}
+	//	return result.Value;
+	//}
 
 	protected static ICommand Command(
 		Func<object?, bool> canExecute,

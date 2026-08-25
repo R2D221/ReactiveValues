@@ -20,14 +20,14 @@
 	</InputRadioGroup>
 </label>
 <br/>
-@if (viewModel.WhatToShow == RealTimeViewModel.Selection.DateTime)
+@* @if (viewModel.WhatToShow == RealTimeViewModel.Selection.DateTime)
 {
 	@:Date & time: @($"{viewModel.DateTimeNow:O}")
 }
 @if (viewModel.WhatToShow == RealTimeViewModel.Selection.Fps)
 {
 	@:FPS: @viewModel.FPS.Value
-}
+} *@
 
 
 @code {
