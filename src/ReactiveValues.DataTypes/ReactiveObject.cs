@@ -51,11 +51,4 @@ public abstract partial class ReactiveObject
 
 		return (ReactiveProperty<T>)properties.GetOrAdd(property, property => new ReactiveProperty<T>(this, property.Name));
 	}
-
-	protected static ICommand Command(
-		Func<object?, bool> canExecute,
-		Action<object?> execute)
-	{
-		return new Command(canExecute, execute);
-	}
 }
