@@ -6,17 +6,18 @@ public sealed partial class DebounceThrottleViewModel : ReactiveObject
 {
 	public int IntervalMs
 	{
-		get => Get(() => IntervalMs, initialValue: () => 100);
-		set => Set(() => IntervalMs, value);
+		get => Property(() => IntervalMs).Get(initialValue: () => 100);
+		set => Property(() => IntervalMs).Set(value);
 	}
 
-	public TimeSpan Interval => Computed(() => Interval,
-		() => TimeSpan.FromMilliseconds(IntervalMs));
+	public TimeSpan Interval =>
+		Property(() => Interval)
+		.Computed(() => TimeSpan.FromMilliseconds(IntervalMs));
 
 	public string Input
 	{
-		get => Get(() => Input, initialValue: () => "");
-		set => Set(() => Input, value);
+		get => Property(() => Input).Get(initialValue: () => "");
+		set => Property(() => Input).Set(value);
 	}
 
 	//public string DebouncedInput => Computed(() => DebouncedInput,

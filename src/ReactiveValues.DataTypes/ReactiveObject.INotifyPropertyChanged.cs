@@ -8,7 +8,7 @@ partial class ReactiveObject : INotifyPropertyChanged
 	private readonly ConcurrentDictionary<PropertyChangedEventHandler, (Watcher watcher, ConcurrentDictionary<string, Effect> effects)>
 		propertyChanged = new();
 
-	private void HookPropertyChanged(string name, Reactive reactive)
+	internal void HookPropertyChanged(string name, Reactive reactive)
 	{
 		foreach (var entry in propertyChanged)
 		{
@@ -52,7 +52,7 @@ partial class ReactiveObject : INotifyPropertyChanged
 
 					foreach (var property in properties)
 					{
-						CreateEffect(watcher, value, property.Key, effects, property.Value);
+						CreateEffect(watcher, value, property.Key.Name, effects, property.Value.Reactive);
 					}
 
 					return (watcher, effects);

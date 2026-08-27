@@ -17,18 +17,19 @@ namespace Signals_WpfTest
 	{
 		public string GivenName
 		{
-			get => Get(() => GivenName, () => "");
-			set => Set(() => GivenName, value);
+			get => Property(() => GivenName).Get(() => "");
+			set => Property(() => GivenName).Set(value);
 		}
 
 		public string FamilyName
 		{
-			get => Get(() => FamilyName, () => "");
-			set => Set(() => FamilyName, value);
+			get => Property(() => FamilyName).Get(() => "");
+			set => Property(() => FamilyName).Set(value);
 		}
 
-		public string Greeting => Computed(() => Greeting,
-			() => $"Hello, World! {GivenName} {FamilyName}");
+		public string Greeting =>
+			Property(() => Greeting)
+			.Computed(() => $"Hello, World! {GivenName} {FamilyName}");
 	}
 }
 

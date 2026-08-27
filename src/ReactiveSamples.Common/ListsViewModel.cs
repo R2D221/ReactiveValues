@@ -7,24 +7,28 @@ public sealed class ListsViewModel : ReactiveObject
 {
 	public string NewItem
 	{
-		get => Get(() => NewItem, () => "");
-		set => Set(() => NewItem, value);
+		get => Property(() => NewItem).Get(() => "");
+		set => Property(() => NewItem).Set(value);
 	}
 
-	public ReactiveList<string> LeftItems => Get(() => LeftItems, () => []);
+	public ReactiveList<string> LeftItems =>
+		Property(() => LeftItems)
+		.Get(() => []);
 
 	public int LeftIndex
 	{
-		get => Get(() => LeftIndex, () => -1);
-		set => Set(() => LeftIndex, value);
+		get => Property(() => LeftIndex).Get(() => -1);
+		set => Property(() => LeftIndex).Set(value);
 	}
 
-	public ReactiveList<string> RightItems => Get(() => RightItems, () => []);
+	public ReactiveList<string> RightItems =>
+		Property(() => RightItems)
+		.Get(() => []);
 
 	public int RightIndex
 	{
-		get => Get(() => RightIndex, () => -1);
-		set => Set(() => RightIndex, value);
+		get => Property(() => RightIndex).Get(() => -1);
+		set => Property(() => RightIndex).Set(value);
 	}
 
 	public ICommand AddItemCommand => field ??= Command(

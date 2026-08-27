@@ -7,39 +7,41 @@ public sealed class InputControlsViewModel : ReactiveObject
 {
 	public bool Checked
 	{
-		get => Get(() => Checked);
-		set => Set(() => Checked, value);
+		get => Property(() => Checked).Get();
+		set => Property(() => Checked).Set(value);
 	}
 
 	public double Number
 	{
-		get => Get(() => Number);
-		set => Set(() => Number, value);
+		get => Property(() => Number).Get();
+		set => Property(() => Number).Set(value);
 	}
 
 	public string Text
 	{
-		get => Get(() => Text, () => "");
-		set => Set(() => Text, value);
+		get => Property(() => Text).Get(() => "");
+		set => Property(() => Text).Set(value);
 	}
 
 	public DateTime? Date
 	{
-		get => Get(() => Date);
-		set => Set(() => Date, value);
+		get => Property(() => Date).Get();
+		set => Property(() => Date).Set(value);
 	}
 
-	public IReadOnlyList<string> Items => Computed(() => Items,
-		() => ["Alfa", "Bravo", "Charlie"]);
+	public IReadOnlyList<string> Items =>
+		Property(() => Items)
+		.Computed(() => ["Alfa", "Bravo", "Charlie"]);
 
 	public string? Item
 	{
-		get => Get(() => Item);
-		set => Set(() => Item, value);
+		get => Property(() => Item).Get();
+		set => Property(() => Item).Set(value);
 	}
 
-	public bool CanSubmit => Computed(() => CanSubmit,
-		() =>
+	public bool CanSubmit =>
+		Property(() => CanSubmit)
+		.Computed(() =>
 		Checked is true
 		&& Number > 0
 		&& Text.Length > 0
@@ -49,8 +51,8 @@ public sealed class InputControlsViewModel : ReactiveObject
 
 	public string StatusMessage
 	{
-		get => Get(() => StatusMessage, () => "");
-		set => Set(() => StatusMessage, value);
+		get => Property(() => StatusMessage).Get(() => "");
+		set => Property(() => StatusMessage).Set(value);
 	}
 
 	public ICommand SubmitCommand => field ??= Command(

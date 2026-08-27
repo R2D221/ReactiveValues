@@ -15,7 +15,7 @@ public sealed class CounterInstance : ReactiveObject
 {
 	public int CurrentCount
 	{
-		get => Get(() => CurrentCount);
-		set => Set(() => CurrentCount, value);
+		get => Property(() => CurrentCount).Get();
+		set => Property(() => CurrentCount).Set(value);
 	}
 }
