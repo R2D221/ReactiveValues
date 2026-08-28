@@ -31,17 +31,17 @@ public sealed class ListsViewModel : ReactiveObject
 		set => Property(() => RightIndex).Set(value);
 	}
 
-	public ICommand AddItemCommand => field ??= Command(
-		_ => NewItem.Length > 0,
-		_ =>
+	public ICommand AddItemCommand => field ??= new ReactiveCommand(
+		() => NewItem.Length > 0,
+		() =>
 		{
 			LeftItems.Add(NewItem);
 			NewItem = "";
 		});
 
-	public ICommand MoveRightCommand => field ??= Command(
-		_ => LeftIndex > -1,
-		_ =>
+	public ICommand MoveRightCommand => field ??= new ReactiveCommand(
+		() => LeftIndex > -1,
+		() =>
 		{
 			var leftItem = LeftItems.GetAt(LeftIndex);
 
@@ -49,9 +49,9 @@ public sealed class ListsViewModel : ReactiveObject
 			RightItems.AddLast(leftItem);
 		});
 
-	public ICommand MoveLeftCommand => field ??= Command(
-		_ => RightIndex > -1,
-		_ =>
+	public ICommand MoveLeftCommand => field ??= new ReactiveCommand(
+		() => RightIndex > -1,
+		() =>
 		{
 			var rightItem = RightItems.GetAt(RightIndex);
 

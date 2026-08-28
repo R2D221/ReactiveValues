@@ -6,28 +6,29 @@ public sealed class ViewModel : ReactiveObject
 {
 	public string GivenName
 	{
-		get => Get(() => GivenName, () => "Arturo");
-		set => Set(() => GivenName, value);
+		get => Property(() => GivenName).Get(() => "Arturo");
+		set => Property(() => GivenName).Set(value);
 	}
 
 	public string FamilyName
 	{
-		get => Get(() => FamilyName, () => "Torres");
-		set => Set(() => FamilyName, value);
+		get => Property(() => FamilyName).Get(() => "Torres");
+		set => Property(() => FamilyName).Set(value);
 	}
 
-	public string FullName => Computed(() => FullName,
-		() => $"{GivenName} {FamilyName}");
+	public string FullName =>
+		Property(() => FullName)
+		.Computed(() => $"{GivenName} {FamilyName}");
 
 	public int Age
 	{
-		get => Get(() => Age, () => 0);
-		set => Set(() => Age, value);
+		get => Property(() => Age).Get(() => 0);
+		set => Property(() => Age).Set(value);
 	}
 
 	public ReactiveList<string> Items
 	{
-		get => Get(() => Items, () => ["A", "B", "C", "D"]);
-		set => Set(() => Items, value);
+		get => Property(() => Items).Get(() => ["A", "B", "C", "D"]);
+		set => Property(() => Items).Set(value);
 	}
 }

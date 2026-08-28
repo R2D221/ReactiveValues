@@ -7,17 +7,18 @@ public sealed partial class RealTimeViewModel : ReactiveObject
 {
 	public int IntervalMs
 	{
-		get => Get(() => IntervalMs, initialValue: () => 100);
-		set => Set(() => IntervalMs, value);
+		get => Property(() => IntervalMs).Get(initialValue: () => 100);
+		set => Property(() => IntervalMs).Set(value);
 	}
 
-	public TimeSpan Interval => Computed(() => Interval,
-		() => TimeSpan.FromMilliseconds(IntervalMs));
+	public TimeSpan Interval =>
+		Property(() => Interval)
+		.Computed(() => TimeSpan.FromMilliseconds(IntervalMs));
 
 	public Selection WhatToShow
 	{
-		get => Get(() => WhatToShow);
-		set => Set(() => WhatToShow, value);
+		get => Property(() => WhatToShow).Get();
+		set => Property(() => WhatToShow).Set(value);
 	}
 
 	public enum Selection { DateTime, Fps }
@@ -27,6 +28,7 @@ public sealed partial class RealTimeViewModel : ReactiveObject
 
 	//public DateTime DateTimeNow => Computed(() => DateTimeNow, () => InternalDateTimeNow.Value);
 
-	public FPS FPS => Computed(() => FPS,
-		() => new FPS(Interval));
+	public FPS FPS =>
+		Property(() => FPS)
+		.Computed(() => new FPS(Interval));
 }

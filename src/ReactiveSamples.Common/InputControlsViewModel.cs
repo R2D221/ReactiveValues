@@ -55,16 +55,16 @@ public sealed class InputControlsViewModel : ReactiveObject
 		set => Property(() => StatusMessage).Set(value);
 	}
 
-	public ICommand SubmitCommand => field ??= Command(
-		_ => CanSubmit,
-		_ =>
+	public ICommand SubmitCommand => field ??= new ReactiveCommand(
+		() => CanSubmit,
+		() =>
 		{
 			StatusMessage = $"{DateTime.Now} - Submitted!";
 		});
 
-	public ICommand ClearCommand => field ??= Command(
-		_ => true,
-		_ =>
+	public ICommand ClearCommand => field ??= new ReactiveCommand(
+		() => true,
+		() =>
 		{
 			Checked = false;
 			Number = 0;
