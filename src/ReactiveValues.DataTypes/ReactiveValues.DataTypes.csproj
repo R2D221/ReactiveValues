@@ -6,6 +6,11 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
+		<Version>1.0.0-beta.2</Version>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/R2D221/ReactiveValues</PackageProjectUrl>
+		<Description>C# reactive values inspired by JS signals. This package includes base classes to build objects with automatic PropertyChanged events.</Description>
+
 		<MeziantouPolyfill_IncludedPolyfills>
 			|M:System.ArgumentNullException.ThrowIfNull(System.Object,System.String)
 			|M:System.Collections.Concurrent.ConcurrentDictionary`2.GetOrAdd``1(`0,System.Func{`0,``0,`1},``0)

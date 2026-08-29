@@ -6,7 +6,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 
-		<Version>1.0.0-beta.1</Version>
+		<Version>1.0.0-beta.2</Version>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageProjectUrl>https://github.com/R2D221/ReactiveValues</PackageProjectUrl>
 		<Description>C# reactive values inspired by JS signals.</Description>
@@ -57,5 +57,15 @@
 		<PackageReference Include="Microsoft.Bcl.TimeProvider" />
 		<PackageReference Include="System.Collections.Immutable" />
 	</ItemGroup>
+
+	<!--
+	<PropertyGroup>
+		<PackageReadmeFile>readme.md</PackageReadmeFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="docs\readme.md" Pack="true" PackagePath="\"/>
+	</ItemGroup>
+	-->
 
 </Project>
